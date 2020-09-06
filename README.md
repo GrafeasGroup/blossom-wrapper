@@ -1,2 +1,2 @@
-# template-repo
-Repository with all the important info in it for starting new projects under the Grafeas Group umbrella.
+# Blossom Wrapper
+Repository which provides a wrapper around Blossom's API, allowing for invoking this API through methods.
