@@ -144,7 +144,7 @@ class BlossomAPI:
 
     def accept_coc(self, username: str) -> BlossomResponse:
         """Let the user accept the Code of Conduct."""
-        response = self.post("volunteer/accept_coc/", params={"username", username})
+        response = self.post("volunteer/accept_coc/", params={"username": username})
         if response.status_code == 201:
             return BlossomResponse()
         elif response.status_code == 404:
