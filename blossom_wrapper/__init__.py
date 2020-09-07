@@ -160,7 +160,7 @@ class BlossomAPI:
         """Create a Blossom Submission with the given information."""
         data = {
             "original_id": post_id,
-            "origin": "reddit",
+            "source": "reddit",
             "tor_url": post_url,
             "url": original_url,
             "content_url": content_url
