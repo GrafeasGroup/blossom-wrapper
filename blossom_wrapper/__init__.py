@@ -158,7 +158,7 @@ class BlossomAPI:
             self, post_id: str, post_url: str, original_url: str, content_url: str,
     ) -> BlossomResponse:
         """Create a Blossom Submission with the given information."""
-        params = {
+        data = {
             "original_id": post_id,
             "origin": "reddit",
             "tor_url": post_url,
@@ -166,7 +166,7 @@ class BlossomAPI:
             "content_url": content_url
         }
 
-        response = self.post("submission/", params=params)
+        response = self.post("submission/", data=data)
         response.raise_for_status()
         return BlossomResponse(data=response.json())
 
