@@ -29,16 +29,15 @@ class BlossomAPI:
         password: str,
         api_key: str,
         api_base_url: str = "http://localhost:8000/api/",
-        login_url: str = "http://localhost:8000/login/",
         num_retries: int = 1,
     ) -> None:
         """
         Initialize the Blossom API with the necessary parameters.
+
         :param email: the email address which the bot should use to log into Blossom
         :param password: the password to use to log into Blossom
         :param api_key: the API key to use to perform requests to Blossom
         :param api_base_url: the base URL of the API used as a prefix to API paths
-        :param login_url: the URL used to log the bot into Blossom
         :param num_retries: the number of retries each failing call should do before error
         """
         if not email:
@@ -49,40 +48,33 @@ class BlossomAPI:
             raise ValueError("Need an API key!")
         if not api_base_url:
             raise ValueError("Need to know the API base URL!")
-        if not login_url:
-            raise ValueError("Need to know the login URL!")
 
         self.email = email
         self.password = password
         self.base_url = api_base_url
-        self.login_url = login_url
         self.num_retries = num_retries
 
         self.http = Session()
         self.http.headers.update({"Authorization": f"Api-Key {api_key}"})
-
-    def _login(self) -> Response:
-        """Log into Blossom using the provided URL and credentials."""
-        resp = self.http.post(
-            self.login_url, data={"email": self.email, "password": self.password}
-        )
-        return resp
 
     def _call(
         self, method: str, path: str, data: Dict = None, params: Dict = None
     ) -> Response:
         """
         Create a call to the API using the requests package.
+
         In this method, a request is retried if a 403 and a message on authentication
         credentials is returned. In this case, it seems that tor is not yet logged in and
         hence we attempt to log in. In any other case, the request is returned at is
         without retrying. If the described failure still occurs after the set number of
         retries, this method raises an exception.
+
         Note that because of Blossom's CSRF protection each non-GET request also first
         requires a GET request to retrieve a CSRF token.
         """
         # https://2.python-requests.org/en/master/user/advanced/#prepared-requests
         data = data if data is not None else dict()
+        data.update({"email": self.email, "password": self.password})
         params = params if params is not None else dict()
 
         if method != "GET":
@@ -91,7 +83,11 @@ class BlossomAPI:
             self._call("GET", path, data, params)
             if "csrftoken" in self.http.cookies:
                 data.update({"csrfmiddlewaretoken": self.http.cookies.get("csrftoken")})
-        req = Request(method=method, url=self.base_url + path, data=data, params=params)
+        req = Request(
+            method=method, url=urljoin(self.base_url, path), data=data, params=params
+        )
+
+        resp = None
 
         for _ in range(self.num_retries):
             prepped = self.http.prepare_request(req)
@@ -101,18 +97,12 @@ class BlossomAPI:
             resp = self.http.send(prepped, **settings)
 
             if resp.status_code == 403:
-                if (
-                    resp.json().get("detail")
-                    == "Authentication credentials were not provided."
-                ):
-                    # It seems that the bot is not yet logged in, so perform the login.
-                    self._login()
-                else:
-                    break
-            else:
-                break
-        else:
-            raise Exception("Unable to authenticate! Check your email and password!")
+                raise Exception(
+                    "Unable to authenticate! Check your email and password!"
+                )
+
+            break
+
         return resp
 
     def get(self, path: str, data=None, params=None) -> Response:
@@ -143,7 +133,7 @@ class BlossomAPI:
 
     def get_user(self, username: str) -> BlossomResponse:
         """Get the user with the specified username."""
-        response = self.get("volunteer", params={"username": username})
+        response = self.get("volunteer/", params={"username": username})
         response.raise_for_status()
         results = response.json()["results"]
         if results:
@@ -153,7 +143,7 @@ class BlossomAPI:
 
     def accept_coc(self, username: str) -> BlossomResponse:
         """Let the user accept the Code of Conduct."""
-        response = self.get("volunteer/accept_coc", params={"username", username})
+        response = self.get("volunteer/accept_coc/", params={"username", username})
         if response.status_code == 201:
             return BlossomResponse()
         elif response.status_code == 404:
@@ -191,7 +181,7 @@ class BlossomAPI:
 
     def delete_submission(self, submission_id: str) -> BlossomResponse:
         """Delete a Submission from Blossom corresponding to the provided ID."""
-        response = self.delete(f"submission/{submission_id}")
+        response = self.delete(f"submission/{submission_id}/")
         if response.status_code == 204:
             return BlossomResponse()
 
@@ -249,7 +239,7 @@ class BlossomAPI:
 
     def unclaim(self, submission_id: str, username: str) -> BlossomResponse:
         response = self.patch(
-            f"submission/{submission_id}/unclaim", data={"username": username}
+            f"submission/{submission_id}/unclaim/", data={"username": username}
         )
         if response.status_code == 201:
             return BlossomResponse(data=response.json())
@@ -271,7 +261,7 @@ class BlossomAPI:
     ) -> BlossomResponse:
         """Specify that the submission is done by the provided username."""
         response = self.patch(
-            f"submission/{submission_id}/done",
+            f"submission/{submission_id}/done/",
             data={"username": username, "mod_override": mod_override}
         )
         if response.status_code == 201:
