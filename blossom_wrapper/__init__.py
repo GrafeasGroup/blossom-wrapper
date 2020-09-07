@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from enum import auto, Enum
+from enum import Enum, auto
 from typing import Any, Dict, Union
+from urllib.parse import urljoin
 
 from requests import Request, Response, Session
 
