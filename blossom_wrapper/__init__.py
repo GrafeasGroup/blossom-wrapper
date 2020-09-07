@@ -124,7 +124,7 @@ class BlossomAPI:
 
     def create_user(self, username: str) -> BlossomResponse:
         """Create a new user with the given username."""
-        response = self.get("volunteer/", data={"username": username})
+        response = self.post("volunteer/", data={"username": username})
         if response.status_code == 201:
             return BlossomResponse(status=BlossomStatus.ok, data=response.json())
         elif response.status_code == 422:
