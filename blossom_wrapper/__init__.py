@@ -78,6 +78,8 @@ class BlossomAPI:
         if path.startswith("/"):
             # urljoin doesn't like that and will make this return a false failure.
             path = path[1:]
+        if not path.endswith("/"):
+            path += "/"
 
         if method != "GET":
             # Currently Blossom has CSRF protection enabled, hence tor should include a
