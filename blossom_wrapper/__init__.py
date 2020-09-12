@@ -91,21 +91,11 @@ class BlossomAPI:
             method=method, url=urljoin(self.base_url, path), data=data, params=params
         )
 
-        resp = None
-
-        for _ in range(self.num_retries):
-            prepped = self.http.prepare_request(req)
-            settings = self.http.merge_environment_settings(
-                prepped.url, {}, None, None, None
-            )
-            resp = self.http.send(prepped, **settings)
-
-            if resp.status_code == 403:
-                raise Exception(
-                    "Unable to authenticate! Check your email and password!"
-                )
-
-            break
+        prepped = self.http.prepare_request(req)
+        settings = self.http.merge_environment_settings(
+            prepped.url, {}, None, None, None
+        )
+        resp = self.http.send(prepped, **settings)
 
         return resp
 
