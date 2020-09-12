@@ -77,6 +77,9 @@ class BlossomAPI:
         data = data if data is not None else dict()
         data.update({"email": self.email, "password": self.password})
         params = params if params is not None else dict()
+        if path.startswith("/"):
+            # urljoin doesn't like that and will make this return a false failure.
+            path = path[1:]
 
         if method != "GET":
             # Currently Blossom has CSRF protection enabled, hence tor should include a
@@ -279,5 +282,21 @@ class BlossomAPI:
             return BlossomResponse(status=BlossomStatus.blacklisted)
         elif response.status_code == 428:
             return BlossomResponse(status=BlossomStatus.data_missing)
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def get_ocr_transcriptions(self, source: str=None) -> BlossomResponse:
+        if not source:
+            source = "reddit"
+
+        response = self.get(
+            "submission/get_transcribot_queue/", params={"source": source}
+        )
+        if response.status_code == 200:
+            return BlossomResponse(data=response.json())
+        if response.status_code == 400:
+            return BlossomResponse(
+                status=BlossomStatus.missing_prerequisite, data=response.json()
+            )
         response.raise_for_status()
         return BlossomResponse()
