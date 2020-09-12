@@ -225,7 +225,7 @@ class BlossomAPI:
 
     def get_transcription(self, **kwargs) -> BlossomResponse:
         """Get the Blossom Transcription corresponding to any passed-in filters."""
-        response = self.get("submission/", params=kwargs)
+        response = self.get("transcription/", params=kwargs)
         response.raise_for_status()
         results = response.json()["results"]
         if results:
