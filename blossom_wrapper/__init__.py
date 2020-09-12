@@ -173,13 +173,13 @@ class BlossomAPI:
         response.raise_for_status()
         return BlossomResponse(data=response.json())
 
-    def get_submission(self, url: str) -> BlossomResponse:
-        """Get the Blossom Submission corresponding to the URL of the post."""
-        response = self.get("submission/", params={"url": url})
+    def get_submission(self, **kwargs) -> BlossomResponse:
+        """Get the Blossom Submission corresponding to any passed-in filters."""
+        response = self.get("submission/", params=kwargs)
         response.raise_for_status()
         results = response.json()["results"]
         if results:
-            return BlossomResponse(data=results[0])
+            return BlossomResponse(data=results)
         else:
             return BlossomResponse(status=BlossomStatus.not_found)
 
@@ -223,6 +223,16 @@ class BlossomAPI:
         response.raise_for_status()
         return BlossomResponse()
 
+    def get_transcription(self, **kwargs) -> BlossomResponse:
+        """Get the Blossom Transcription corresponding to any passed-in filters."""
+        response = self.get("submission/", params=kwargs)
+        response.raise_for_status()
+        results = response.json()["results"]
+        if results:
+            return BlossomResponse(data=results)
+        else:
+            return BlossomResponse(status=BlossomStatus.not_found)
+
     def claim(self, submission_id: str, username: str) -> BlossomResponse:
         """Claim the specified submission with the specified username."""
         response = self.patch(
@@ -242,6 +252,7 @@ class BlossomAPI:
         return BlossomResponse()
 
     def unclaim(self, submission_id: str, username: str) -> BlossomResponse:
+        """Unclaim a given submission so that it can be claimed by someone else."""
         response = self.patch(
             f"submission/{submission_id}/unclaim/", data={"username": username}
         )
@@ -286,6 +297,7 @@ class BlossomAPI:
         return BlossomResponse()
 
     def get_ocr_transcriptions(self, source: str=None) -> BlossomResponse:
+        """Get all submission objects with transcriptions that are ready to post."""
         if not source:
             source = "reddit"
 
