@@ -52,7 +52,6 @@ class BlossomAPI:
         self.email = email
         self.password = password
         self.base_url = api_base_url
-        self.num_retries = num_retries
 
         self.http = Session()
         self.http.headers.update({"Authorization": f"Api-Key {api_key}"})
