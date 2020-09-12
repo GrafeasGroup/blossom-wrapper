@@ -30,7 +30,6 @@ class BlossomAPI:
         password: str,
         api_key: str,
         api_base_url: str = "http://localhost:8000/api/",
-        num_retries: int = 1,
     ) -> None:
         """
         Initialize the Blossom API with the necessary parameters.
