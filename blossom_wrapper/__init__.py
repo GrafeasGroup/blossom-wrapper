@@ -307,7 +307,21 @@ class BlossomAPI:
 
     def get_expired_submissions(self, **kwargs) -> BlossomResponse:
         """Get all submission objects that have not been claimed in the expiry time."""
+        kwargs.update({"source": "reddit"})
         response = self.get("submission/expired/", params=kwargs)
+        if response.status_code == 200:
+            return BlossomResponse(data=response.json())
+        if response.status_code == 400:
+            return BlossomResponse(
+                status=BlossomStatus.invalid_data, data=response.json()
+            )
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def get_unarchived_submissions(self, **kwargs) -> BlossomResponse:
+        """Get all submission objects that have not been claimed in the expiry time."""
+        kwargs.update({"source": "reddit"})
+        response = self.get("submission/unarchived/", params=kwargs)
         if response.status_code == 200:
             return BlossomResponse(data=response.json())
         if response.status_code == 400:
