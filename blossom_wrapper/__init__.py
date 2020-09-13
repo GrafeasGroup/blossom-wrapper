@@ -11,10 +11,12 @@ class BlossomStatus(Enum):
     blacklisted = auto()
     coc_not_accepted = auto()
     data_missing = auto()
+    invalid_data = auto()
     missing_prerequisite = auto()
     not_found = auto()
     ok = auto()
     other_user = auto()
+
 
 
 @dataclass
@@ -299,6 +301,18 @@ class BlossomAPI:
         if response.status_code == 400:
             return BlossomResponse(
                 status=BlossomStatus.missing_prerequisite, data=response.json()
+            )
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def get_expired_submissions(self, **kwargs) -> BlossomResponse:
+        """Get all submission objects that have not been claimed in the expiry time."""
+        response = self.get("submission/expired/", params=kwargs)
+        if response.status_code == 200:
+            return BlossomResponse(data=response.json())
+        if response.status_code == 400:
+            return BlossomResponse(
+                status=BlossomStatus.invalid_data, data=response.json()
             )
         response.raise_for_status()
         return BlossomResponse()
