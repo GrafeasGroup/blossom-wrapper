@@ -330,3 +330,10 @@ class BlossomAPI:
             )
         response.raise_for_status()
         return BlossomResponse()
+
+    def archive_submission(self, submission_id: str) -> BlossomResponse:
+        response = self.patch(f"/submission/{submission_id}/", {'archived': True})
+        if response.status_code == 200:
+            return BlossomResponse(data=response.json())
+        response.raise_for_status()
+        return BlossomResponse()
