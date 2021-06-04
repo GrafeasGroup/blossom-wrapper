@@ -32,7 +32,7 @@ class BlossomAPI:
         email: str,
         password: str,
         api_key: str,
-        api_base_url: str = "http://localhost:8000/api/",
+        api_base_url: str = "https://grafeas.org/api/",
     ) -> None:
         """
         Initialize the Blossom API with the necessary parameters.
