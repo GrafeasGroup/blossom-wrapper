@@ -4,6 +4,8 @@ from typing import Any, Dict, Union
 from urllib.parse import urljoin
 
 from requests import Request, Response, Session
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 
 class BlossomStatus(Enum):
@@ -16,7 +18,6 @@ class BlossomStatus(Enum):
     not_found = auto()
     ok = auto()
     other_user = auto()
-
 
 
 @dataclass
@@ -55,7 +56,18 @@ class BlossomAPI:
         self.password = password
         self.base_url = api_base_url
 
+        # https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks
+        retry_strategy = Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[429, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "OPTIONS"],
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+
         self.http = Session()
+        self.http.mount("https://", adapter)
+        self.http.mount("http://", adapter)
         self.http.headers.update({"Authorization": f"Api-Key {api_key}"})
 
     def _call(
@@ -150,7 +162,11 @@ class BlossomAPI:
         return BlossomResponse()
 
     def create_submission(
-            self, post_id: str, post_url: str, original_url: str, content_url: str,
+        self,
+        post_id: str,
+        post_url: str,
+        original_url: str,
+        content_url: str,
     ) -> BlossomResponse:
         """Create a Blossom Submission with the given information."""
         data = {
@@ -158,7 +174,7 @@ class BlossomAPI:
             "source": "reddit",
             "tor_url": post_url,
             "url": original_url,
-            "content_url": content_url
+            "content_url": content_url,
         }
 
         response = self.post("submission/", data=data)
@@ -191,7 +207,7 @@ class BlossomAPI:
         url: str,
         username: str,
         submission_id: str,
-        removed_from_reddit: bool
+        removed_from_reddit: bool,
     ) -> BlossomResponse:
         """Create a new Transcription within Blossom."""
         response = self.post(
@@ -203,8 +219,8 @@ class BlossomAPI:
                 "text": text,
                 "url": url,
                 "username": username,
-                "removed_from_reddit": removed_from_reddit
-            }
+                "removed_from_reddit": removed_from_reddit,
+            },
         )
         if response.status_code == 201:
             return BlossomResponse(data=response.json())
@@ -269,7 +285,7 @@ class BlossomAPI:
         """Specify that the submission is done by the provided username."""
         response = self.patch(
             f"submission/{submission_id}/done/",
-            data={"username": username, "mod_override": mod_override}
+            data={"username": username, "mod_override": mod_override},
         )
         if response.status_code == 201:
             return BlossomResponse(data=response.json())
@@ -288,7 +304,7 @@ class BlossomAPI:
         response.raise_for_status()
         return BlossomResponse()
 
-    def get_ocr_transcriptions(self, source: str=None) -> BlossomResponse:
+    def get_ocr_transcriptions(self, source: str = None) -> BlossomResponse:
         """Get all submission objects with transcriptions that are ready to post."""
         if not source:
             source = "reddit"
@@ -332,7 +348,7 @@ class BlossomAPI:
         return BlossomResponse()
 
     def archive_submission(self, submission_id: str) -> BlossomResponse:
-        response = self.patch(f"/submission/{submission_id}/", {'archived': True})
+        response = self.patch(f"/submission/{submission_id}/", {"archived": True})
         if response.status_code == 200:
             return BlossomResponse(data=response.json())
         response.raise_for_status()
