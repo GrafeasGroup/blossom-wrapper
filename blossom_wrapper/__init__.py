@@ -151,7 +151,7 @@ class BlossomAPI:
 
     def delete(self, path: str, data=None, params=None) -> BlossomResponse:
         """Request a DELETE request to the API."""
-        response = self.delete(path, data, params)
+        response = self._delete(path, data, params)
         if response.status_code == 204:
             return BlossomResponse(data=response.json())
         response.raise_for_status()
