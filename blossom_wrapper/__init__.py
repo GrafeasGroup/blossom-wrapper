@@ -113,27 +113,59 @@ class BlossomAPI:
 
         return resp
 
-    def get(self, path: str, data=None, params=None) -> Response:
+    def get(self, path: str, data=None, params=None) -> BlossomResponse:
+        """Request a GET request to the API."""
+        response = self._get(path, data, params)
+        if response.status_code == 200:
+            return BlossomResponse(data=response.json())
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def _get(self, path: str, data=None, params=None) -> Response:
         """Request a GET request to the API."""
         return self._call("GET", path, data, params)
 
-    def post(self, path: str, data=None, params=None) -> Response:
+    def post(self, path: str, data=None, params=None) -> BlossomResponse:
+        """Request a POST request to the API."""
+        response = self._post(path, data, params)
+        if response.status_code == 201:
+            return BlossomResponse(data=response.json())
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def _post(self, path: str, data=None, params=None) -> Response:
         """Request a POST request to the API."""
         return self._call("POST", path, data, params)
 
-    def patch(self, path: str, data=None, params=None) -> Response:
+    def patch(self, path: str, data=None, params=None) -> BlossomResponse:
+        """Request a PATCH request to the API."""
+        response = self._patch(path, data, params)
+        if response.status_code == 201:
+            return BlossomResponse(data=response.json())
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def _patch(self, path: str, data=None, params=None) -> Response:
         """Request a PATCH request to the API."""
         return self._call("PATCH", path, data, params)
 
-    def delete(self, path: str, data=None, params=None) -> Response:
+    def delete(self, path: str, data=None, params=None) -> BlossomResponse:
+        """Request a DELETE request to the API."""
+        response = self._patch(path, data, params)
+        if response.status_code == 204:
+            return BlossomResponse(data=response.json())
+        response.raise_for_status()
+        return BlossomResponse()
+
+    def _delete(self, path: str, data=None, params=None) -> Response:
         """Request a DELETE request to the API."""
         return self._call("DELETE", path, data, params)
 
     def create_user(self, username: str) -> BlossomResponse:
         """Create a new user with the given username."""
-        response = self.post("volunteer/", data={"username": username})
+        response = self._post("volunteer/", data={"username": username})
         if response.status_code == 201:
-            return BlossomResponse(status=BlossomStatus.ok, data=response.json())
+            return BlossomResponse(data=response.json())
         elif response.status_code == 422:
             return BlossomResponse(status=BlossomStatus.already_completed)
         response.raise_for_status()
@@ -141,7 +173,7 @@ class BlossomAPI:
 
     def get_user(self, username: str) -> BlossomResponse:
         """Get the user with the specified username."""
-        response = self.get("volunteer/", params={"username": username})
+        response = self._get("volunteer/", params={"username": username})
         response.raise_for_status()
         results = response.json()["results"]
         if results:
@@ -151,7 +183,7 @@ class BlossomAPI:
 
     def accept_coc(self, username: str) -> BlossomResponse:
         """Let the user accept the Code of Conduct."""
-        response = self.post("volunteer/accept_coc/", params={"username": username})
+        response = self._post("volunteer/accept_coc/", params={"username": username})
         if response.status_code == 201:
             return BlossomResponse()
         elif response.status_code == 404:
@@ -177,13 +209,11 @@ class BlossomAPI:
             "content_url": content_url,
         }
 
-        response = self.post("submission/", data=data)
-        response.raise_for_status()
-        return BlossomResponse(data=response.json())
+        return self.post("submission/", data=data)
 
     def get_submission(self, **kwargs) -> BlossomResponse:
         """Get the Blossom Submission corresponding to any passed-in filters."""
-        response = self.get("submission/", params=kwargs)
+        response = self._get("submission/", params=kwargs)
         response.raise_for_status()
         results = response.json()["results"]
         if results:
@@ -193,12 +223,7 @@ class BlossomAPI:
 
     def delete_submission(self, submission_id: str) -> BlossomResponse:
         """Delete a Submission from Blossom corresponding to the provided ID."""
-        response = self.delete(f"submission/{submission_id}/")
-        if response.status_code == 204:
-            return BlossomResponse()
-
-        response.raise_for_status()
-        return BlossomResponse()
+        return self._delete(f"submission/{submission_id}/")
 
     def create_transcription(
         self,
@@ -210,7 +235,7 @@ class BlossomAPI:
         removed_from_reddit: bool,
     ) -> BlossomResponse:
         """Create a new Transcription within Blossom."""
-        response = self.post(
+        response = self._post(
             "transcription/",
             data={
                 "original_id": transcription_id,
@@ -233,7 +258,7 @@ class BlossomAPI:
 
     def get_transcription(self, **kwargs) -> BlossomResponse:
         """Get the Blossom Transcription corresponding to any passed-in filters."""
-        response = self.get("transcription/", params=kwargs)
+        response = self._get("transcription/", params=kwargs)
         response.raise_for_status()
         results = response.json()["results"]
         if results:
@@ -243,7 +268,7 @@ class BlossomAPI:
 
     def claim(self, submission_id: str, username: str) -> BlossomResponse:
         """Claim the specified submission with the specified username."""
-        response = self.patch(
+        response = self._patch(
             f"submission/{submission_id}/claim/", data={"username": username}
         )
         if response.status_code == 201:
@@ -261,7 +286,7 @@ class BlossomAPI:
 
     def unclaim(self, submission_id: str, username: str) -> BlossomResponse:
         """Unclaim a given submission so that it can be claimed by someone else."""
-        response = self.patch(
+        response = self._patch(
             f"submission/{submission_id}/unclaim/", data={"username": username}
         )
         if response.status_code == 201:
@@ -283,7 +308,7 @@ class BlossomAPI:
         self, submission_id: str, username: str, mod_override: bool = False
     ) -> BlossomResponse:
         """Specify that the submission is done by the provided username."""
-        response = self.patch(
+        response = self._patch(
             f"submission/{submission_id}/done/",
             data={"username": username, "mod_override": mod_override},
         )
@@ -309,7 +334,7 @@ class BlossomAPI:
         if not source:
             source = "reddit"
 
-        response = self.get(
+        response = self._get(
             "submission/get_transcribot_queue/", params={"source": source}
         )
         if response.status_code == 200:
@@ -324,7 +349,7 @@ class BlossomAPI:
     def get_expired_submissions(self, **kwargs) -> BlossomResponse:
         """Get all submission objects that have not been claimed in the expiry time."""
         kwargs.update({"source": "reddit"})
-        response = self.get("submission/expired/", params=kwargs)
+        response = self._get("submission/expired/", params=kwargs)
         if response.status_code == 200:
             return BlossomResponse(data=response.json())
         if response.status_code == 400:
@@ -337,7 +362,7 @@ class BlossomAPI:
     def get_unarchived_submissions(self, **kwargs) -> BlossomResponse:
         """Get all submission objects that have not been claimed in the expiry time."""
         kwargs.update({"source": "reddit"})
-        response = self.get("submission/unarchived/", params=kwargs)
+        response = self._get("submission/unarchived/", params=kwargs)
         if response.status_code == 200:
             return BlossomResponse(data=response.json())
         if response.status_code == 400:
@@ -348,7 +373,7 @@ class BlossomAPI:
         return BlossomResponse()
 
     def archive_submission(self, submission_id: str) -> BlossomResponse:
-        response = self.patch(f"/submission/{submission_id}/", {"archived": True})
+        response = self._patch(f"/submission/{submission_id}/", {"archived": True})
         if response.status_code == 200:
             return BlossomResponse(data=response.json())
         response.raise_for_status()
