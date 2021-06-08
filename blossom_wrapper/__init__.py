@@ -223,7 +223,7 @@ class BlossomAPI:
 
     def delete_submission(self, submission_id: str) -> BlossomResponse:
         """Delete a Submission from Blossom corresponding to the provided ID."""
-        return self._delete(f"submission/{submission_id}/")
+        return self.delete(f"submission/{submission_id}/")
 
     def create_transcription(
         self,
