@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 from requests import Request, Response, Session
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from urllib3.util.retry import Retry  # type: ignore
 
 
 class BlossomStatus(Enum):
@@ -63,7 +63,7 @@ class BlossomAPI:
             status_forcelist=[429, 500, 502, 503, 504],
             method_whitelist=["HEAD", "GET", "OPTIONS"],
         )
-        adapter = HTTPAdapter(max_retries=retry_strategy)
+        adapter = HTTPAdapter(max_retries=retry_strategy)  # type: ignore
 
         self.http = Session()
         self.http.mount("https://", adapter)
