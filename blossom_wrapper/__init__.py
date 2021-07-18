@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 from requests import Request, Response, Session
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+from urllib3.util.retry import Retry  # type: ignore
 
 
 class BlossomStatus(Enum):
@@ -64,7 +64,7 @@ class BlossomAPI:
             status_forcelist=[429, 500, 502, 503, 504],
             method_whitelist=["HEAD", "GET", "OPTIONS"],
         )
-        adapter = HTTPAdapter(max_retries=retry_strategy)
+        adapter = HTTPAdapter(max_retries=retry_strategy)  # type: ignore
 
         self.http = Session()
         self.http.mount("https://", adapter)
@@ -96,12 +96,6 @@ class BlossomAPI:
         if not path.endswith("/"):
             path += "/"
 
-        if method != "GET":
-            # Currently Blossom has CSRF protection enabled, hence tor should include a
-            # new CSRF token in this request, which is retrieved from the GET request.
-            self._call("GET", path, data, params)
-            if "csrftoken" in self.http.cookies:
-                data.update({"csrfmiddlewaretoken": self.http.cookies.get("csrftoken")})
         req = Request(
             method=method, url=urljoin(self.base_url, path), data=data, params=params
         )
