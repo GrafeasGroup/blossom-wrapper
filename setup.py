@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="blossom-wrapper",
-    version="0.0.2",
+    version="0.3.0",
     author="Grafeas Group",
     author_email="info@grafeas.org",
     description="Wrapper for the Blossom API",
