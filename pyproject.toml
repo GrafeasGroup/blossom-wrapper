@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "blossom-wrapper"
-version = "0.3.0"
+version = "0.4.0"
 description = ""
 authors = ["Grafeas Group Ltd. <devs@grafeas.org>"]
 license = "MIT"
