@@ -10,6 +10,7 @@ from urllib3.util.retry import Retry  # type: ignore
 
 class BlossomStatus(Enum):
     already_claimed = auto()
+    too_many_claims = auto()
     already_completed = auto()
     blacklisted = auto()
     coc_not_accepted = auto()
@@ -248,9 +249,11 @@ class BlossomAPI:
         elif response.status_code == 404:
             return BlossomResponse(status=BlossomStatus.not_found)
         elif response.status_code == 409:
-            return BlossomResponse(status=BlossomStatus.already_claimed)
+            return BlossomResponse(data=response.json(), status=BlossomStatus.already_claimed)
         elif response.status_code == 423:
             return BlossomResponse(status=BlossomStatus.blacklisted)
+        elif response.status_code == 460:
+            return BlossomResponse(data=response.json(), status=BlossomStatus.too_many_claims)
         response.raise_for_status()
         return BlossomResponse()
 
