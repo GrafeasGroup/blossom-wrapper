@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Dict, Union
+from typing import Any, Dict, Union, Optional
 from urllib.parse import urljoin
 
 from requests import Request, Response, Session
@@ -163,14 +163,18 @@ class BlossomAPI:
         post_url: str,
         original_url: str,
         content_url: str,
+        post_title: Optional[str] = None,
+        **kwargs,
     ) -> BlossomResponse:
         """Create a Blossom Submission with the given information."""
         data = {
+            **kwargs,
             "original_id": post_id,
             "source": "reddit",
             "tor_url": post_url,
             "url": original_url,
             "content_url": content_url,
+            "title": post_title,
         }
 
         response = self.post("submission/", data=data)
