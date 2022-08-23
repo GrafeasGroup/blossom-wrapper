@@ -12,7 +12,7 @@ class BlossomStatus(Enum):
     already_claimed = auto()
     too_many_claims = auto()
     already_completed = auto()
-    blacklisted = auto()
+    blocked = auto()
     coc_not_accepted = auto()
     data_missing = auto()
     invalid_data = auto()
@@ -255,7 +255,7 @@ class BlossomAPI:
         elif response.status_code == 409:
             return BlossomResponse(data=response.json(), status=BlossomStatus.already_claimed)
         elif response.status_code == 423:
-            return BlossomResponse(status=BlossomStatus.blacklisted)
+            return BlossomResponse(status=BlossomStatus.blocked)
         elif response.status_code == 460:
             return BlossomResponse(data=response.json(), status=BlossomStatus.too_many_claims)
         response.raise_for_status()
@@ -277,7 +277,7 @@ class BlossomAPI:
         elif response.status_code == 412:
             return BlossomResponse(status=BlossomStatus.missing_prerequisite)
         elif response.status_code == 423:
-            return BlossomResponse(status=BlossomStatus.blacklisted)
+            return BlossomResponse(status=BlossomStatus.blocked)
         response.raise_for_status()
         return BlossomResponse()
 
@@ -300,7 +300,7 @@ class BlossomAPI:
         elif response.status_code == 412:
             return BlossomResponse(status=BlossomStatus.missing_prerequisite)
         elif response.status_code == 423:
-            return BlossomResponse(status=BlossomStatus.blacklisted)
+            return BlossomResponse(status=BlossomStatus.blocked)
         elif response.status_code == 428:
             return BlossomResponse(status=BlossomStatus.data_missing)
         response.raise_for_status()
