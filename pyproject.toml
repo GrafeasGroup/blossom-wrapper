@@ -11,7 +11,7 @@ requests = "^2.0"
 urllib3 = "^1.26"
 
 [tool.poetry.dev-dependencies]
-black = "^21.5b2"
+black = "^24.3"
 mypy = ">=0.800"
 types-requests = "^0.1.10"
 flake8 = "^3.9.2"
